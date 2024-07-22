@@ -1,4 +1,4 @@
 uvicorn
 fastapi
-google.generativeai
+google-generativeai
 asyncio
