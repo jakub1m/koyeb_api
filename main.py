@@ -98,37 +98,39 @@ title of the song:"""
             raise
 
     async def sentiment_analysis(self, lyrics: str, title: str) -> Optional[Dict[str, Any]]:
-        try:
-            response = await self.model_instance.generate_content_async(
-                [f"{self.PROMPT_SENTIMENT}{title}", lyrics,
-], safety_settings={
-        HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-        HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE, HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE
-    }
-            )
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = await self.model_instance.generate_content_async(
+                    [f"{self.PROMPT_SENTIMENT}{title}", lyrics],
+                    safety_settings={
+                        HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+                        HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+                        HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE
+                    }
+                )
 
-            json_content = response.candidates[0].content.parts[0].text
-            
-            json_content = re.sub(r'```json\s*|\s*```', '', json_content)
-            
-            match = re.search(r'\{.*?\}', json_content, re.DOTALL)
-            if match:
-                json_content = match.group(0)
-            
-            result = json.loads(json_content)
-            
-            for key in result:
-                if isinstance(result[key], list):
-                    result[key] = list(dict.fromkeys(result[key]))
-            return result
-        except json.JSONDecodeError as je:
-            logger.error(f"Error decoding JSON: {str(je)}")
-            logger.error(f"Raw response: {response.text}")
-            return None
-        except Exception as e:
-            logger.error(f"Error in sentiment analysis: {str(e)}")
-            return None
-
+                json_content = response.candidates[0].content.parts[0].text
+                
+                json_content = re.sub(r'```json\s*|\s*```', '', json_content)
+                
+                match = re.search(r'\{.*?\}', json_content, re.DOTALL)
+                if match:
+                    json_content = match.group(0)
+                
+                result = json.loads(json_content)
+                
+                for key in result:
+                    if isinstance(result[key], list):
+                        result[key] = list(dict.fromkeys(result[key]))
+                return result
+            except Exception as e:
+                logger.error(f"Attempt {attempt + 1} failed: {str(e)}")
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(1)  # Wait for 1 second before retrying
+                else:
+                    logger.error("All attempts to communicate with Gemini failed")
+                    return None
 
 class SentimentRequest(BaseModel):
     api_key: str
@@ -143,12 +145,13 @@ async def analyze_sentiment(request: SentimentRequest):
         result = await gemini_api.sentiment_analysis(request.lyrics, request.title)
         
         if result is None:
-            raise HTTPException(status_code=500, detail="Error performing sentiment analysis")
+            raise HTTPException(status_code=503, detail="Failed to communicate with Gemini API after multiple attempts")
         
         return result
     except Exception as e:
         logger.error(f"Error in sentiment analysis endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
+
 
 if __name__ == "__main__":
     import uvicorn
