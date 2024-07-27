@@ -79,6 +79,7 @@ Critical instructions:
 - Consider cultural context, idioms, metaphors, and emotional nuances.
 - Maintain objectivity. Do not let personal interpretations influence the analysis.
 - If the content is highly ambiguous or contextually complex, reflect this in a lower confidence score.
+- If you are aware of the context of this song or know that it has caused controversy, consider this in your analysis.
 - Do not include any additional fields in the JSON response.
 - Do not generate or return any response format other than the specified JSON structure.
 
