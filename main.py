@@ -66,9 +66,10 @@ Return this JSON structure:
   "explanation": string // One concise sentence
 }
 
-Lyrics to analyze:
+Strive for balance and accuracy in your assessment.
 
-Strive for balance and accuracy in your assessment."""
+Lyrics to analyze:"""
+
     def __init__(self, api_key: str, model: str = "gemini-1.5-flash") -> None:
         self.model = model
         self.api_key = api_key
@@ -87,7 +88,7 @@ Strive for balance and accuracy in your assessment."""
         for attempt in range(max_retries):
             try:
                 response = await self.model_instance.generate_content_async(
-                    [f"{self.PROMPT_SENTIMENT}", lyrics],
+                    [f"{self.PROMPT_SENTIMENT}{title}", lyrics],
                     safety_settings={
                         HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
                         HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
