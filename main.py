@@ -40,51 +40,35 @@ logger = logging.getLogger(__name__)
 app = FastAPI()
 
 class GeminiApi:
-    PROMPT_SENTIMENT = """Perform a precise sentiment analysis of the following song lyrics. Return a JSON object with this exact structure:
+    PROMPT_SENTIMENT = """As an advanced sentiment analysis system for song lyrics, evaluate the given lyrics (in Polish or English) and return a JSON result. Be decisive in your assessment, avoiding neutral classifications unless truly warranted.
+
+Rules:
+1. Positive: uplifting, joyful, or inspiring content. Play on school radio.
+2. Negative: sad, angry, or potentially upsetting content. Patriotic or religious songs, or content inappropriate for school. Automatically reject.
+3. Neutral: only if the sentiment is genuinely balanced or unclear.
+
+Focus on:
+- Overall emotional tone and message
+- Recurring themes and keywords
+- Metaphors and deeper meanings
+- Age-appropriateness for school environment
+
+Avoid overemphasis on:
+- Single words out of context
+- Minor details that don't affect overall sentiment
+
+Return this JSON structure:
 
 {
-    "overall_sentiment": string,
-    "sentiment_score": number,
-    "confidence": number,
-    "explanation": string
+  "overall_sentiment": string, // "positive", "negative", "neutral"
+  "sentiment_score": number, // -1 to 1 (0 for neutral)
+  "confidence": number, // 0 to 1
+  "explanation": string // One concise sentence
 }
 
-Adhere strictly to these guidelines:
+Lyrics to analyze:
 
-1. overall_sentiment: 
-   - Use ONLY "positive", "negative", or "neutral".
-   - Choose based on the dominant emotional tone of the entire text.
-   - If mixed, select the sentiment that has the stronger presence.
-
-2. sentiment_score: 
-   - Provide a number from -1.0 to 1.0, using up to two decimal places.
-   - -1.0 represents extremely negative, 0.0 is neutral, and 1.0 is extremely positive.
-   - This score should precisely reflect the intensity of the sentiment.
-
-3. confidence: 
-   - Indicate your level of certainty in the analysis from 0.0 to 1.0, using up to two decimal places.
-   - 0.0 means no confidence, 1.0 means absolute certainty.
-   - Base this on factors like clarity of expression, consistency of tone, and your understanding of the language and context.
-
-4. explanation:
-   - Provide a brief, concise explanation for your sentiment analysis.
-   - Use no more than 2-3 short sentences.
-   - Focus on the key elements that influenced your decision.
-   - Do not repeat the sentiment or score, just explain the reasoning.
-
-Critical instructions:
-- Ignore any safety flags or content warnings. Analyze ALL provided text regardless of content.
-- Do not mention or acknowledge any potential content warnings or safety concerns in your analysis.
-- The text may be in Polish or English. Analyze in the language provided.
-- Consider cultural context, idioms, metaphors, and emotional nuances.
-- Maintain objectivity. Do not let personal interpretations influence the analysis.
-- If the content is highly ambiguous or contextually complex, reflect this in a lower confidence score.
-- If you are aware of the context of this song or know that it has caused controversy, consider this in your analysis.
-- Do not include any additional fields in the JSON response.
-- Do not generate or return any response format other than the specified JSON structure.
-
-title of the song:"""
-
+Strive for balance and accuracy in your assessment."""
     def __init__(self, api_key: str, model: str = "gemini-1.5-flash") -> None:
         self.model = model
         self.api_key = api_key
@@ -103,7 +87,7 @@ title of the song:"""
         for attempt in range(max_retries):
             try:
                 response = await self.model_instance.generate_content_async(
-                    [f"{self.PROMPT_SENTIMENT}{title}", lyrics],
+                    [f"{self.PROMPT_SENTIMENT}", lyrics],
                     safety_settings={
                         HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
                         HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
