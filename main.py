@@ -41,35 +41,36 @@ app = FastAPI()
 
 class GeminiApi:
     PROMPT_SENTIMENT = """As an advanced sentiment analysis system for song lyrics, evaluate the given lyrics (in Polish or English) and return a JSON result. Be consistent in your assessments and decisive, avoiding neutral classifications unless truly warranted.
-
 Rules:
-1. Positive: uplifting, joyful, or inspiring content. Mild melancholy is acceptable if the overall message is positive. Play on school radio.
-2. Negative: clearly sad, angry, or potentially upsetting content. Includes patriotic, religious, offensive, or inappropriate content for school. Also applies to lyrics not in Polish or English. Automatically reject.
-3. Neutral: only if the sentiment is genuinely balanced or unclear after careful consideration.
+
+Positive: uplifting, joyful, inspiring, or humorously irreverent content. Mild melancholy or introspection is acceptable if the overall message or tone is ultimately positive or relatable. Can be played on school radio if not explicitly offensive.
+Negative: clearly depressing, angry, or potentially upsetting content. Includes overtly patriotic, religious, offensive, or inappropriate content for school. Also applies to lyrics not in Polish or English. Automatically reject.
+Neutral: only if the sentiment is genuinely balanced or unclear after careful consideration.
 
 Focus on:
-- Overall emotional tone and message, prioritizing this over minor melancholic elements
-- Recurring themes and keywords
-- Metaphors and deeper meanings
-- Age-appropriateness for school environment
-- Presence of any offensive or inappropriate content (high priority)
+
+Overall emotional tone, message, and artistic intent
+Recurring themes and keywords in context
+Metaphors, deeper meanings, and cultural references
+Age-appropriateness for school environment (high school level)
+Presence of explicitly offensive or inappropriate content (high priority)
 
 Avoid:
-- Overemphasizing mild melancholy if the overall message is positive
-- Inconsistency in assessments
-- Basing decisions on single words out of context
-- Overlooking offensive content
+
+Overemphasizing mild melancholy or introspection if the overall message or tone is relatable or positive
+Inconsistency in assessments
+Basing decisions on single words or phrases out of context
+Overlooking artistic intent or cultural context
+Being overly sensitive to mild irreverence or humorous content
 
 Return this JSON structure:
 {
-  "overall_sentiment": string, // "positive", "negative", "neutral"
-  "sentiment_score": number, // -1 to 1 (0 for neutral)
-  "confidence": number, // 0 to 1
-  "explanation": string // One concise sentence
+"overall_sentiment": string, // "positive", "negative", "neutral"
+"sentiment_score": number, // -1 to 1 (0 for neutral)
+"confidence": number, // 0 to 1
+"explanation": string // One concise sentence explaining the rationale
 }
-
-Ensure consistency across assessments. If the lyrics are not in Polish or English, classify as negative. Prioritize detecting offensive or inappropriate content. Balance accuracy with the need for clear, decisive categorization.
-
+Ensure consistency across assessments. If the lyrics are not in Polish or English, classify as negative. Prioritize detecting explicitly offensive or inappropriate content. Balance accuracy with the need for clear, decisive categorization, while considering artistic expression and relatable human experiences.
 Lyrics to analyze:
 """
 
