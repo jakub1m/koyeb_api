@@ -40,28 +40,38 @@ logger = logging.getLogger(__name__)
 app = FastAPI()
 
 class GeminiApi:
-    PROMPT_SENTIMENT =  """As an advanced sentiment analysis system for song lyrics, evaluate the given lyrics (in Polish or English) and return a JSON result. Be consistent in your assessments and decisive, avoiding neutral classifications unless truly warranted.
+    PROMPT_SENTIMENT =  PROMPT_SENTIMENT = """As an advanced sentiment analysis system for song lyrics, evaluate the given lyrics (in Polish or English) and return a JSON result. Be consistent in your assessments and decisive, avoiding neutral classifications unless truly warranted.
 Rules:
 
-Positive: uplifting, joyful, inspiring, or neutral content without offensive elements. Melancholy and introspection are acceptable as long as they don't contain offensive or inappropriate content.
-Negative: content containing any offensive, vulgar, or inappropriate elements, even if used in a humorous context. Also includes content clearly promoting harmful behaviors or attitudes. Additionally, block religious and patriotic songs. Automatically reject lyrics not in Polish or English.
-Neutral: only if the sentiment is genuinely balanced or unclear after careful consideration.
+Positive: uplifting, joyful, inspiring, or neutral content without any offensive, vulgar, or inappropriate elements. Mild melancholy and introspection are acceptable as long as they don't contain any questionable content.
+Negative:
+
+Content containing ANY offensive, vulgar, or inappropriate elements, even if used humorously or with a positive message.
+Use of slang terms that could be considered disrespectful or offensive.
+References to body parts in a crude or disrespectful manner.
+Content clearly promoting harmful behaviors or attitudes.
+Religious or patriotic songs.
+Lyrics not in Polish or English.
+
+
+Neutral: only if the sentiment is genuinely balanced or unclear after careful consideration, and contains no offensive elements.
 
 Focus on:
 
+Presence of ANY offensive, vulgar, or inappropriate content (highest priority)
 Overall message and emotional tone
-Presence of any offensive, vulgar, or inappropriate content (highest priority)
-Religious or patriotic themes (to be classified as negative)
+Use of slang or potentially offensive terms
+Religious or patriotic themes
 Recurring themes and keywords
 Metaphors and deeper meanings
-Appropriateness for school environment
+Strict appropriateness for school environment
 
 Avoid:
 
-Blocking songs solely due to melancholic or introspective nature if they don't contain offensive content
+Accepting songs with any vulgar or offensive language, even if used humorously or with a positive message
 Inconsistency in assessments
-Basing decisions on single words taken out of context
-Overlooking offensive, inappropriate, religious, or patriotic content
+Overlooking potentially offensive content due to context or intended message
+Allowing religious or patriotic content
 
 Return this JSON structure:
 {
@@ -70,10 +80,9 @@ Return this JSON structure:
 "confidence": number, // 0 to 1
 "explanation": string // One concise sentence explaining the decision
 }
-Ensure consistency across assessments. If the lyrics are not in Polish or English, classify as negative. Prioritize detecting offensive, inappropriate, religious, or patriotic content, even if used humorously. Balance accuracy with the need for clear, decisive categorization.
+Ensure consistency and strictness across assessments. Any presence of vulgar, offensive, or inappropriate content results in a negative classification, regardless of the overall message. Balance accuracy with the need for clear, decisive categorization, erring on the side of caution for school appropriateness.
 Lyrics to analyze:
 """
-
     def __init__(self, api_key: str, model: str = "gemini-1.5-flash") -> None:
         self.model = model
         self.api_key = api_key
