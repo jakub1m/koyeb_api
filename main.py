@@ -40,25 +40,27 @@ logger = logging.getLogger(__name__)
 app = FastAPI()
 
 class GeminiApi:
-    PROMPT_SENTIMENT = """As an advanced sentiment analysis system for song lyrics, evaluate the given lyrics (in Polish or English) and return a JSON result. Be decisive in your assessment, avoiding neutral classifications unless truly warranted.
+    PROMPT_SENTIMENT = """As an advanced sentiment analysis system for song lyrics, evaluate the given lyrics (in Polish or English) and return a JSON result. Be consistent in your assessments and decisive, avoiding neutral classifications unless truly warranted.
 
 Rules:
-1. Positive: uplifting, joyful, or inspiring content. Play on school radio.
-2. Negative: sad, angry, or potentially upsetting content. Patriotic or religious songs, or content inappropriate for school. Automatically reject.
-3. Neutral: only if the sentiment is genuinely balanced or unclear.
+1. Positive: uplifting, joyful, or inspiring content. Mild melancholy is acceptable if the overall message is positive. Play on school radio.
+2. Negative: clearly sad, angry, or potentially upsetting content. Includes patriotic, religious, offensive, or inappropriate content for school. Also applies to lyrics not in Polish or English. Automatically reject.
+3. Neutral: only if the sentiment is genuinely balanced or unclear after careful consideration.
 
 Focus on:
-- Overall emotional tone and message
+- Overall emotional tone and message, prioritizing this over minor melancholic elements
 - Recurring themes and keywords
 - Metaphors and deeper meanings
 - Age-appropriateness for school environment
+- Presence of any offensive or inappropriate content (high priority)
 
-Avoid overemphasis on:
-- Single words out of context
-- Minor details that don't affect overall sentiment
+Avoid:
+- Overemphasizing mild melancholy if the overall message is positive
+- Inconsistency in assessments
+- Basing decisions on single words out of context
+- Overlooking offensive content
 
 Return this JSON structure:
-
 {
   "overall_sentiment": string, // "positive", "negative", "neutral"
   "sentiment_score": number, // -1 to 1 (0 for neutral)
@@ -66,7 +68,7 @@ Return this JSON structure:
   "explanation": string // One concise sentence
 }
 
-Strive for balance and accuracy in your assessment.
+Ensure consistency across assessments. If the lyrics are not in Polish or English, classify as negative. Prioritize detecting offensive or inappropriate content. Balance accuracy with the need for clear, decisive categorization.
 
 Lyrics to analyze:
 """
