@@ -102,7 +102,6 @@ Ensure consistency across assessments. Presence of offensive or inappropriate co
                 response = await self.model_instance.generate_content_async(
                     [f"{self.PROMPT_SENTIMENT}{title}", lyrics],
                     safety_settings={
-                        HarmCategory.HARM_CATEGORY_UNSPECIFIED: HarmBlockThreshold.BLOCK_NONE,
                         HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
                         HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
                         HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
