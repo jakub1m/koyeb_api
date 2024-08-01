@@ -40,9 +40,7 @@ logger = logging.getLogger(__name__)
 app = FastAPI()
 
 class GeminiApi:
-    PROMPT_SENTIMENT =  PROMPT_SENTIMENT ="""As an advanced sentiment analysis system for song lyrics, evaluate the given lyrics (in Polish or English) and return a JSON result. Be consistent in your assessments and decisive, avoiding neutral classifications unless truly warranted.
-Rules:
-
+    PROMPT_SENTIMENT = """As an advanced sentiment analysis system for song lyrics, evaluate the given lyrics (in Polish or English) and return a JSON result. Be consistent in your assessments and decisive, avoiding neutral classifications unless truly warranted. Rules:
 Positive: uplifting, joyful, inspiring, or neutral content without offensive or inappropriate elements. Mild melancholy, introspection, and common swear words are acceptable.
 Negative:
 
@@ -52,10 +50,9 @@ References to body parts in a crude or disrespectful manner.
 Content clearly promoting harmful behaviors or attitudes.
 Religious or patriotic songs.
 Lyrics not in Polish or English.
-
+Children's songs or songs primarily aimed at young children (e.g., nursery rhymes, lullabies, educational songs for kids).
 
 Neutral: only if the sentiment is genuinely balanced or unclear after careful consideration, and contains no offensive elements beyond common swear words.
-
 Focus on:
 
 Presence of offensive or inappropriate content (highest priority, excluding common swear words)
@@ -65,6 +62,7 @@ Religious or patriotic themes
 Recurring themes and keywords
 Metaphors and deeper meanings
 Appropriateness for school environment
+Whether the song is primarily aimed at children or very young audiences
 
 Avoid:
 
@@ -73,6 +71,7 @@ Accepting songs with offensive or inappropriate content beyond common swear word
 Inconsistency in assessments
 Overlooking potentially offensive content due to context or intended message
 Allowing religious or patriotic content
+Accepting songs primarily aimed at young children
 
 Return this JSON structure:
 {
@@ -81,8 +80,7 @@ Return this JSON structure:
 "confidence": number, // 0 to 1
 "explanation": string // One concise sentence explaining the decision
 }
-Ensure consistency across assessments. Presence of offensive or inappropriate content (beyond common swear words) results in a negative classification, regardless of the overall message. Balance accuracy with the need for clear, decisive categorization, erring on the side of caution for school appropriateness, but allowing for common swear words.
-Lyrics to analyze:
+Ensure consistency across assessments. Presence of offensive or inappropriate content (beyond common swear words) or children's song characteristics results in a negative classification, regardless of the overall message. Balance accuracy with the need for clear, decisive categorization, erring on the side of caution for school appropriateness, but allowing for common swear words. Lyrics to analyze:
 """
     def __init__(self, api_key: str, model: str = "gemini-1.5-flash") -> None:
         self.model = model
@@ -104,9 +102,17 @@ Lyrics to analyze:
                 response = await self.model_instance.generate_content_async(
                     [f"{self.PROMPT_SENTIMENT}{title}", lyrics],
                     safety_settings={
-                        HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-                        HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-                        HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE
+                        HarmCategory.HARM_CATEGORY_UNSPECIFIED: HarmHarmBlockThreshold.BLOCK_NONE,
+                        HarmCategory.HARM_CATEGORY_DEROGATORY: HarmHarmBlockThreshold.BLOCK_NONE,
+                        HarmCategory.HARM_CATEGORY_TOXICITY: HarmHarmBlockThreshold.BLOCK_NONE,
+                        HarmCategory.HARM_CATEGORY_VIOLENCE: HarmHarmBlockThreshold.BLOCK_NONE,
+                        HarmCategory.HARM_CATEGORY_SEXUAL: HarmHarmBlockThreshold.BLOCK_NONE,
+                        HarmCategory.HARM_CATEGORY_MEDICAL: HarmHarmBlockThreshold.BLOCK_NONE,
+                        HarmCategory.HARM_CATEGORY_DANGEROUS: HarmHarmBlockThreshold.BLOCK_NONE,
+                        HarmCategory.HARM_CATEGORY_HARASSMENT: HarmHarmBlockThreshold.BLOCK_NONE,
+                        HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmHarmBlockThreshold.BLOCK_NONE,
+                        HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmHarmBlockThreshold.BLOCK_NONE,
+                        HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmHarmBlockThreshold.BLOCK_NONE 
                     }
                 )
 
