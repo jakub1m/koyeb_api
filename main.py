@@ -73,10 +73,9 @@ Overlooking potentially offensive content due to context or intended message
 Allowing religious or patriotic content
 Accepting songs primarily aimed at young children
 
-Return this JSON structure:
-{
-"sentiment": int // "positive=0", "negative=2", "neutral=1"
-}
+Return only int:
+"positive=0", "negative=2", "neutral=1"
+
 Ensure consistency across assessments. Presence of offensive or inappropriate content (beyond common swear words) or children's song characteristics results in a negative classification, regardless of the overall message. Balance accuracy with the need for clear, decisive categorization, erring on the side of caution for school appropriateness, but allowing for common swear words. Lyrics to analyze:
 """
     def __init__(self, api_key: str, model: str = "gemini-1.5-flash") -> None:
