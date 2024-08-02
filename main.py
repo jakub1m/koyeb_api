@@ -73,8 +73,10 @@ Overlooking potentially offensive content due to context or intended message
 Allowing religious or patriotic content
 Accepting songs primarily aimed at young children
 
-Return only int:
-"positive=0", "negative=2", "neutral=1"
+Return this JSON structure:
+{
+"sentiment": int // "positive=0", "negative=2", "neutral=1"
+}
 
 Ensure consistency across assessments. Presence of offensive or inappropriate content (beyond common swear words) or children's song characteristics results in a negative classification, regardless of the overall message. Balance accuracy with the need for clear, decisive categorization, erring on the side of caution for school appropriateness, but allowing for common swear words. Lyrics to analyze:
 """
@@ -114,10 +116,13 @@ Ensure consistency across assessments. Presence of offensive or inappropriate co
                     json_content = match.group(0)
                 
                 result = json.loads(json_content)
-                
+                if 'sentiment' in result and isinstance(result['sentiment'], dict) and 'sentiment' in result['sentiment']:
+                result['sentiment'] = result['sentiment']['sentiment']
+            
                 for key in result:
                     if isinstance(result[key], list):
                         result[key] = list(dict.fromkeys(result[key]))
+            
                 return result
             except Exception as e:
                 logger.error(f"Attempt {attempt + 1} failed: {str(e)}")
