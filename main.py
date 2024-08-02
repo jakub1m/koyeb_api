@@ -117,7 +117,7 @@ Ensure consistency across assessments. Presence of offensive or inappropriate co
                 
                 result = json.loads(json_content)
                 if 'sentiment' in result and isinstance(result['sentiment'], dict) and 'sentiment' in result['sentiment']:
-                result['sentiment'] = result['sentiment']['sentiment']
+                    result['sentiment'] = result['sentiment']['sentiment']
             
                 for key in result:
                     if isinstance(result[key], list):
