@@ -40,44 +40,44 @@ logger = logging.getLogger(__name__)
 app = FastAPI()
 
 class GeminiApi:
-    PROMPT_SENTIMENT ="""As an advanced sentiment analysis system for song lyrics, evaluate the given lyrics (in Polish or English) and return a JSON result. Be extremely strict in your assessments, especially regarding offensive language, body shaming, and inappropriate content. Rules:
+    PROMPT_SENTIMENT ="""As an advanced sentiment analysis system for song lyrics, evaluate the given lyrics (in Polish or English) and return a JSON result. Be extremely strict and uncompromising in your assessments, with zero tolerance for offensive content, regardless of humor or intended message. Rules:
 
 Positive (0):
-- Uplifting, joyful, or inspiring content without any offensive elements
-- Songs that express hope, resilience, or personal growth using respectful language
+- Uplifting, joyful, or inspiring content with absolutely no offensive elements
+- Songs expressing hope, resilience, or personal growth using entirely respectful language
 - Love songs with respectful, non-explicit content
 - Mild use of common swear words is acceptable if not directed at individuals
 
 Neutral (1):
-- Songs with a perfect balance of positive and negative elements, without any offensive content
-- Purely descriptive or narrative content without emotional charge or offensive language
+- Songs with a perfect balance of positive and negative elements, without any potentially offensive content
+- Purely descriptive or narrative content without emotional charge or potentially offensive language
 
 Negative (2):
 - ANY use of derogatory language, slurs, or offensive terms (beyond common swear words)
-- ANY form of body shaming or mocking physical appearances, even if used for a "moral lesson"
-- Promotion of harmful behaviors, attitudes, or stereotypes
-- Use of crude or disrespectful metaphors or comparisons
+- ANY form of body shaming or mocking physical appearances, NO EXCEPTIONS
+- ANY humor targeting individuals or groups based on physical characteristics
+- Promotion of harmful behaviors, attitudes, or stereotypes, even if presented humorously
+- Use of crude or disrespectful metaphors or comparisons, regardless of context
 - Explicit sexual content or graphic descriptions of violence
 - Religious or overtly political content
 - Children's songs or content primarily aimed at very young audiences
 - Lyrics not in Polish or English
 
-Key Points:
-- ANY instance of body shaming, mocking appearances, or use of derogatory language results in an automatic negative classification
-- The intended message or "moral of the story" does not excuse the use of offensive language or harmful stereotypes
-- Be extremely cautious with humor that targets individuals or groups based on physical characteristics
-- Mild melancholy or introspection is acceptable, but extreme negativity without hope is negative
-- Common swear words are allowed if not excessive or targeted, but any stronger profanity is negative
+Critical Points:
+- Humor is NEVER an excuse for offensive content. ANY humorous content that involves body shaming, mocking appearances, or use of derogatory language results in an automatic negative classification
+- The intended message, moral, or "lesson" DOES NOT excuse the use of offensive language or harmful stereotypes
+- ANY instance of body shaming or mocking physical appearances, even if used for contrast or to highlight a positive change, results in a negative classification
+- Be extremely wary of "twist" endings or morals that seem to justify earlier offensive content - the presence of offensive content overrides any positive message
 
 Return this JSON structure:
 {
   "sentiment": int, // "positive" = 0, "negative" = 2, "neutral" = 1
   "sentiment_score": number, // -1 to 1 (0 for neutral)
   "confidence": number, // 0 to 1
-  "explanation": string // One concise sentence summarizing the rationale
+  "explanation": string // One concise sentence summarizing the rationale, focusing on the presence of any offensive elements
 }
 
-Ensure absolute consistency across assessments. Any presence of body shaming, derogatory language, or mocking of physical appearances results in a negative classification, regardless of the overall message or attempt at humor. Err strongly on the side of caution."""
+Ensure absolute consistency and zero tolerance. ANY presence of body shaming, derogatory language, or mocking of physical appearances results in a negative classification, regardless of humor, overall message, or attempts at a positive moral. When in doubt, always classify as negative."""
     def __init__(self, api_key: str, model: str = "gemini-1.5-flash") -> None:
         self.model = model
         self.api_key = api_key
