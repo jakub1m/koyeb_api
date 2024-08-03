@@ -40,73 +40,41 @@ logger = logging.getLogger(__name__)
 app = FastAPI()
 
 class GeminiApi:
-    PROMPT_SENTIMENT = """
-As an advanced sentiment analysis system for song lyrics, evaluate the given lyrics (in Polish or English) and return a JSON result. Adhere strictly to these guidelines:
-
-Classification Rules:
-
-Positive (0): Uplifting, joyful, inspiring, or neutral content without offensive elements. Mild melancholy and introspection are acceptable.
-Negative (2):
-
-Any offensive or inappropriate content, even if used humorously or with a positive message
-Slang terms considered disrespectful or offensive
-Crude references to body parts
-Content promoting harmful behaviors or attitudes
-Religious or patriotic themes
-Lyrics not in Polish or English
-Songs primarily aimed at young children
-Any swear words or profanity in Polish
-Common swear words in English
-
-
-Neutral (1): Only if sentiment is truly balanced or unclear after analysis, with no offensive elements whatsoever
-
-
-Analysis Priority:
-
-Presence of offensive/inappropriate content (including ALL swear words in Polish, and common swear words in English)
-Humorous but offensive content (treat as negative)
-Target audience (child-focused or not)
-Religious or patriotic themes
+    PROMPT_SENTIMENT ="""As an advanced sentiment analysis system for song lyrics, evaluate the given lyrics (in Polish or English) and return a JSON result. Be consistent in your assessments and decisive, avoiding neutral classifications unless truly warranted. Rules:
+Positive: uplifting, joyful, inspiring, or neutral content without offensive or inappropriate elements. Mild melancholy, introspection, and common swear words are acceptable.
+Negative:
+Content containing offensive or inappropriate elements, even if used humorously or with a positive message.
+Use of slang terms that could be considered disrespectful or offensive (beyond common swear words).
+References to body parts in a crude or disrespectful manner.
+Content clearly promoting harmful behaviors or attitudes.
+Religious or patriotic songs.
+Lyrics not in Polish or English.
+Children's songs or songs primarily aimed at young children (e.g., nursery rhymes, lullabies, educational songs for kids).
+Neutral: only if the sentiment is genuinely balanced or unclear after careful consideration, and contains no offensive elements beyond common swear words.
+Focus on:
+Presence of offensive or inappropriate content (highest priority, excluding common swear words)
 Overall message and emotional tone
-Slang usage
+Use of slang or potentially offensive terms (beyond common swear words)
+Religious or patriotic themes
 Recurring themes and keywords
 Metaphors and deeper meanings
-School environment appropriateness
-
-
-Important Notes:
-
-ANY swear words or profanity in Polish result in a negative classification
-Common swear words in English result in a negative classification
-Any offensive content, even if humorous, results in a negative classification
-Child-focused songs are always negative
-Religious or patriotic songs are always negative
-When in doubt, err on the side of caution for school appropriateness
-
-
-Output Format:
+Appropriateness for school environment
+Whether the song is primarily aimed at children or very young audiences
+Avoid:
+Rejecting songs solely due to the presence of common swear words
+Accepting songs with offensive or inappropriate content beyond common swear words
+Inconsistency in assessments
+Overlooking potentially offensive content due to context or intended message
+Allowing religious or patriotic content
+Accepting songs primarily aimed at young children
 Return this JSON structure:
 {
-"sentiment": int, // 0 = positive, 2 = negative, 1 = neutral
-"sentiment_score": number, // -1.0 to 1.0 (use 0 for neutral)
-"confidence": number, // 0.0 to 1.0
-"explanation": string // One concise sentence explaining the classification
+  "sentiment": int, // "positive" = 0, "negative" = 2, "neutral" = 1
+  "sentiment_score": number, // -1 to 1 (0 for neutral)
+  "confidence": number, // 0 to 1
+  "explanation": string // One concise sentence
 }
-Consistency Check:
-Before finalizing your analysis, review these points:
-
-Is the classification consistent with the provided rules?
-Have you considered all priority analysis factors?
-Have you classified any humorous but offensive content as negative?
-Have you classified any content with Polish swear words as negative?
-Is your explanation clear and directly related to the classification?
-Does the sentiment_score align with the sentiment classification?
-Is your confidence score justified based on the clarity of the classification?
-
-
-
-Maintain strict adherence to these guidelines for all evaluations to ensure consistency across assessments.
+Ensure consistency across assessments. Presence of offensive or inappropriate content (beyond common swear words) or children's song characteristics results in a negative classification, regardless of the overall message. Balance accuracy with the need for clear, decisive categorization, erring on the side of caution for school appropriateness, but allowing for common swear words.
 """
     def __init__(self, api_key: str, model: str = "gemini-1.5-flash") -> None:
         self.model = model
