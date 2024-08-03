@@ -40,8 +40,7 @@ logger = logging.getLogger(__name__)
 app = FastAPI()
 
 class GeminiApi:
-    PROMPT_SENTIMENT =
-"""
+    PROMPT_SENTIMENT = """
 As an advanced sentiment analysis system for song lyrics, evaluate the given lyrics (in Polish or English) and return a JSON result. Adhere strictly to these guidelines:
 
 Classification Rules:
