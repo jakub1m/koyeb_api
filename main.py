@@ -40,42 +40,34 @@ logger = logging.getLogger(__name__)
 app = FastAPI()
 
 class GeminiApi:
-    PROMPT_SENTIMENT ="""As an advanced sentiment analysis system for song lyrics, evaluate the given lyrics (in Polish or English) and return a JSON result. Aim for consistent and decisive assessments, while allowing for a broader range of emotional expression. Rules:
+    PROMPT_SENTIMENT ="""As an advanced sentiment analysis system for song lyrics, evaluate the given lyrics (in Polish or English) and return a JSON result. Be extremely strict in your assessments, especially regarding offensive language, body shaming, and inappropriate content. Rules:
 
-Positive:
-- Uplifting, joyful, or inspiring content
-- Songs that express hope, resilience, or personal growth
-- Mild to moderate melancholy or introspection when balanced with hopeful elements
+Positive (0):
+- Uplifting, joyful, or inspiring content without any offensive elements
+- Songs that express hope, resilience, or personal growth using respectful language
 - Love songs with respectful, non-explicit content
-- Common swear words are acceptable if not used excessively or aggressively
+- Mild use of common swear words is acceptable if not directed at individuals
 
-Neutral:
-- Songs with a balance of positive and negative elements
-- Introspective or philosophical content without a clear emotional lean
-- Narratives or stories without strong emotional undertones
+Neutral (1):
+- Songs with a perfect balance of positive and negative elements, without any offensive content
+- Purely descriptive or narrative content without emotional charge or offensive language
 
-Negative:
-- Explicit content beyond common swear words
+Negative (2):
+- ANY use of derogatory language, slurs, or offensive terms (beyond common swear words)
+- ANY form of body shaming or mocking physical appearances, even if used for a "moral lesson"
 - Promotion of harmful behaviors, attitudes, or stereotypes
-- Use of slurs or highly offensive language
-- Graphic descriptions of violence or disturbing content
-- Extreme pessimism or hopelessness without any redeeming qualities
+- Use of crude or disrespectful metaphors or comparisons
+- Explicit sexual content or graphic descriptions of violence
 - Religious or overtly political content
 - Children's songs or content primarily aimed at very young audiences
 - Lyrics not in Polish or English
 
-Focus on:
-- Overall emotional tone and message
-- Presence of hope, resilience, or growth themes
-- Balance between melancholy and more positive elements
-- Use of metaphors and deeper meanings
-- Appropriateness for a general audience (not specifically school environment)
-
-Avoid:
-- Overreacting to mild melancholy or introspection
-- Classifying all sad or emotional content as negative
-- Rejecting songs solely due to the presence of common swear words
-- Inconsistency in assessments
+Key Points:
+- ANY instance of body shaming, mocking appearances, or use of derogatory language results in an automatic negative classification
+- The intended message or "moral of the story" does not excuse the use of offensive language or harmful stereotypes
+- Be extremely cautious with humor that targets individuals or groups based on physical characteristics
+- Mild melancholy or introspection is acceptable, but extreme negativity without hope is negative
+- Common swear words are allowed if not excessive or targeted, but any stronger profanity is negative
 
 Return this JSON structure:
 {
@@ -85,7 +77,7 @@ Return this JSON structure:
   "explanation": string // One concise sentence summarizing the rationale
 }
 
-Ensure consistency across assessments. Balance accuracy with the need for clear, decisive categorization. Allow for a wider range of emotional expression, including moderate melancholy, while still flagging truly inappropriate or harmful content."""
+Ensure absolute consistency across assessments. Any presence of body shaming, derogatory language, or mocking of physical appearances results in a negative classification, regardless of the overall message or attempt at humor. Err strongly on the side of caution."""
     def __init__(self, api_key: str, model: str = "gemini-1.5-flash") -> None:
         self.model = model
         self.api_key = api_key
