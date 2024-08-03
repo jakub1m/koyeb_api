@@ -43,24 +43,35 @@ class GeminiApi:
     PROMPT_SENTIMENT ="""As an advanced sentiment analysis system for song lyrics, evaluate the given lyrics (in Polish or English) and return a JSON result. Be consistent in your assessments and decisive, avoiding neutral classifications unless truly warranted. Rules:
 Positive: uplifting, joyful, inspiring, or neutral content without offensive or inappropriate elements. Mild melancholy, introspection, and common swear words are acceptable.
 Negative:
+
 Content containing offensive or inappropriate elements, even if used humorously or with a positive message.
 Use of slang terms that could be considered disrespectful or offensive (beyond common swear words).
-References to body parts in a crude or disrespectful manner.
-Content clearly promoting harmful behaviors or attitudes.
+References to body parts or physical appearances in a crude, disrespectful, or mocking manner.
+Content clearly promoting or normalizing harmful behaviors, attitudes, or stereotypes.
+Songs that use derogatory comparisons or metaphors, even if intended to convey a positive message.
+Songs that mock or shame individuals based on their appearance or other physical characteristics.
 Religious or patriotic songs.
 Lyrics not in Polish or English.
 Children's songs or songs primarily aimed at young children (e.g., nursery rhymes, lullabies, educational songs for kids).
-Neutral: only if the sentiment is genuinely balanced or unclear after careful consideration, and contains no offensive elements beyond common swear words.
+
 Focus on:
+
 Presence of offensive or inappropriate content (highest priority, excluding common swear words)
-Overall message and emotional tone
+Use of derogatory language, metaphors, or comparisons
+Overall message and emotional tone, considering the impact of any offensive elements
 Use of slang or potentially offensive terms (beyond common swear words)
+Presence of body shaming or mocking physical appearances
 Religious or patriotic themes
 Recurring themes and keywords
-Metaphors and deeper meanings
+Metaphors and deeper meanings, especially those that might reinforce harmful stereotypes
 Appropriateness for school environment
 Whether the song is primarily aimed at children or very young audiences
+
 Avoid:
+
+Accepting songs with offensive or inappropriate content beyond common swear words, even if the overall message is positive
+Overlooking potentially offensive content due to context or intended message
+Allowing songs that use crude or disrespectful metaphors or comparisons, even if meant to convey a positive lesson
 Rejecting songs solely due to the presence of common swear words
 Accepting songs with offensive or inappropriate content beyond common swear words
 Inconsistency in assessments
