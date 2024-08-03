@@ -45,28 +45,31 @@ As an advanced sentiment analysis system for song lyrics, evaluate the given lyr
 
 Classification Rules:
 
-Positive (0): Uplifting, joyful, inspiring, or neutral content without offensive elements. Mild melancholy, introspection, and common swear words are acceptable.
+Positive (0): Uplifting, joyful, inspiring, or neutral content without offensive elements. Mild melancholy and introspection are acceptable.
 Negative (2):
 
-Any offensive or inappropriate content (beyond common swear words), even if used humorously or with a positive message
-Slang terms considered disrespectful or offensive (beyond common swear words)
+Any offensive or inappropriate content, even if used humorously or with a positive message
+Slang terms considered disrespectful or offensive
 Crude references to body parts
 Content promoting harmful behaviors or attitudes
 Religious or patriotic themes
 Lyrics not in Polish or English
 Songs primarily aimed at young children
+Any swear words or profanity in Polish
+Common swear words in English
 
 
-Neutral (1): Only if sentiment is truly balanced or unclear after analysis, with no offensive elements beyond common swear words
+Neutral (1): Only if sentiment is truly balanced or unclear after analysis, with no offensive elements whatsoever
 
 
 Analysis Priority:
 
-Presence of offensive/inappropriate content (excluding common swear words)
+Presence of offensive/inappropriate content (including ALL swear words in Polish, and common swear words in English)
+Humorous but offensive content (treat as negative)
 Target audience (child-focused or not)
 Religious or patriotic themes
 Overall message and emotional tone
-Slang usage (beyond common swear words)
+Slang usage
 Recurring themes and keywords
 Metaphors and deeper meanings
 School environment appropriateness
@@ -74,8 +77,9 @@ School environment appropriateness
 
 Important Notes:
 
-Common swear words alone do not make a song negative
-Any offensive content beyond common swear words results in a negative classification
+ANY swear words or profanity in Polish result in a negative classification
+Common swear words in English result in a negative classification
+Any offensive content, even if humorous, results in a negative classification
 Child-focused songs are always negative
 Religious or patriotic songs are always negative
 When in doubt, err on the side of caution for school appropriateness
@@ -94,6 +98,8 @@ Before finalizing your analysis, review these points:
 
 Is the classification consistent with the provided rules?
 Have you considered all priority analysis factors?
+Have you classified any humorous but offensive content as negative?
+Have you classified any content with Polish swear words as negative?
 Is your explanation clear and directly related to the classification?
 Does the sentiment_score align with the sentiment classification?
 Is your confidence score justified based on the clarity of the classification?
