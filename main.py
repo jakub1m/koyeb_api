@@ -75,7 +75,10 @@ Accepting songs primarily aimed at young children
 
 Return this JSON structure:
 {
-"sentiment": int // "positive=0", "negative=2", "neutral=1"
+  "sentiment": int, // "positive" = 0, "negative" = 2, "neutral" = 1
+  "sentiment_score": number, // -1 to 1 (0 for neutral)
+  "confidence": number, // 0 to 1
+  "explanation": string // One concise sentence
 }
 
 Ensure consistency across assessments. Presence of offensive or inappropriate content (beyond common swear words) or children's song characteristics results in a negative classification, regardless of the overall message. Balance accuracy with the need for clear, decisive categorization, erring on the side of caution for school appropriateness, but allowing for common swear words. Lyrics to analyze:
