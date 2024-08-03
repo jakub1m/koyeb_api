@@ -81,7 +81,7 @@ Return this JSON structure:
   "explanation": string // One concise sentence
 }
 
-Ensure consistency across assessments. Presence of offensive or inappropriate content (beyond common swear words) or children's song characteristics results in a negative classification, regardless of the overall message. Balance accuracy with the need for clear, decisive categorization, erring on the side of caution for school appropriateness, but allowing for common swear words. Lyrics to analyze:
+Ensure consistency across assessments. Presence of offensive or inappropriate content (beyond common swear words) or children's song characteristics results in a negative classification, regardless of the overall message. Balance accuracy with the need for clear, decisive categorization, erring on the side of caution for school appropriateness, but allowing for common swear words.
 """
     def __init__(self, api_key: str, model: str = "gemini-1.5-flash") -> None:
         self.model = model
@@ -91,7 +91,7 @@ Ensure consistency across assessments. Presence of offensive or inappropriate co
     def _init_model(self) -> None:
         try:
             genai.configure(api_key=self.api_key)
-            self.model_instance = genai.GenerativeModel(self.model)
+            self.model_instance = genai.GenerativeModel(self.model, system_instruction = self.PROMPT_SENTIMENT)
         except Exception as e:
             logger.error(f"Error initializing Gemini model: {str(e)}")
             raise
@@ -101,7 +101,7 @@ Ensure consistency across assessments. Presence of offensive or inappropriate co
         for attempt in range(max_retries):
             try:
                 response = await self.model_instance.generate_content_async(
-                    [f"{self.PROMPT_SENTIMENT}{title}", lyrics],
+                    lyrics,
                     safety_settings={
                         HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
                         HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
