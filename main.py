@@ -40,53 +40,52 @@ logger = logging.getLogger(__name__)
 app = FastAPI()
 
 class GeminiApi:
-    PROMPT_SENTIMENT ="""As an advanced sentiment analysis system for song lyrics, evaluate the given lyrics (in Polish or English) and return a JSON result. Be consistent in your assessments and decisive, avoiding neutral classifications unless truly warranted. Rules:
-Positive: uplifting, joyful, inspiring, or neutral content without offensive or inappropriate elements. Mild melancholy, introspection, and common swear words are acceptable.
-Negative:
+    PROMPT_SENTIMENT ="""As an advanced sentiment analysis system for song lyrics, evaluate the given lyrics (in Polish or English) and return a JSON result. Aim for consistent and decisive assessments, while allowing for a broader range of emotional expression. Rules:
 
-Content containing offensive or inappropriate elements, even if used humorously or with a positive message.
-Use of slang terms that could be considered disrespectful or offensive (beyond common swear words).
-References to body parts or physical appearances in a crude, disrespectful, or mocking manner.
-Content clearly promoting or normalizing harmful behaviors, attitudes, or stereotypes.
-Songs that use derogatory comparisons or metaphors, even if intended to convey a positive message.
-Songs that mock or shame individuals based on their appearance or other physical characteristics.
-Religious or patriotic songs.
-Lyrics not in Polish or English.
-Children's songs or songs primarily aimed at young children (e.g., nursery rhymes, lullabies, educational songs for kids).
+Positive:
+- Uplifting, joyful, or inspiring content
+- Songs that express hope, resilience, or personal growth
+- Mild to moderate melancholy or introspection when balanced with hopeful elements
+- Love songs with respectful, non-explicit content
+- Common swear words are acceptable if not used excessively or aggressively
+
+Neutral:
+- Songs with a balance of positive and negative elements
+- Introspective or philosophical content without a clear emotional lean
+- Narratives or stories without strong emotional undertones
+
+Negative:
+- Explicit content beyond common swear words
+- Promotion of harmful behaviors, attitudes, or stereotypes
+- Use of slurs or highly offensive language
+- Graphic descriptions of violence or disturbing content
+- Extreme pessimism or hopelessness without any redeeming qualities
+- Religious or overtly political content
+- Children's songs or content primarily aimed at very young audiences
+- Lyrics not in Polish or English
 
 Focus on:
-
-Presence of offensive or inappropriate content (highest priority, excluding common swear words)
-Use of derogatory language, metaphors, or comparisons
-Overall message and emotional tone, considering the impact of any offensive elements
-Use of slang or potentially offensive terms (beyond common swear words)
-Presence of body shaming or mocking physical appearances
-Religious or patriotic themes
-Recurring themes and keywords
-Metaphors and deeper meanings, especially those that might reinforce harmful stereotypes
-Appropriateness for school environment
-Whether the song is primarily aimed at children or very young audiences
+- Overall emotional tone and message
+- Presence of hope, resilience, or growth themes
+- Balance between melancholy and more positive elements
+- Use of metaphors and deeper meanings
+- Appropriateness for a general audience (not specifically school environment)
 
 Avoid:
+- Overreacting to mild melancholy or introspection
+- Classifying all sad or emotional content as negative
+- Rejecting songs solely due to the presence of common swear words
+- Inconsistency in assessments
 
-Accepting songs with offensive or inappropriate content beyond common swear words, even if the overall message is positive
-Overlooking potentially offensive content due to context or intended message
-Allowing songs that use crude or disrespectful metaphors or comparisons, even if meant to convey a positive lesson
-Rejecting songs solely due to the presence of common swear words
-Accepting songs with offensive or inappropriate content beyond common swear words
-Inconsistency in assessments
-Overlooking potentially offensive content due to context or intended message
-Allowing religious or patriotic content
-Accepting songs primarily aimed at young children
 Return this JSON structure:
 {
   "sentiment": int, // "positive" = 0, "negative" = 2, "neutral" = 1
   "sentiment_score": number, // -1 to 1 (0 for neutral)
   "confidence": number, // 0 to 1
-  "explanation": string // One concise sentence
+  "explanation": string // One concise sentence summarizing the rationale
 }
-Ensure consistency across assessments. Presence of offensive or inappropriate content (beyond common swear words) or children's song characteristics results in a negative classification, regardless of the overall message. Balance accuracy with the need for clear, decisive categorization, erring on the side of caution for school appropriateness, but allowing for common swear words.
-"""
+
+Ensure consistency across assessments. Balance accuracy with the need for clear, decisive categorization. Allow for a wider range of emotional expression, including moderate melancholy, while still flagging truly inappropriate or harmful content."""
     def __init__(self, api_key: str, model: str = "gemini-1.5-flash") -> None:
         self.model = model
         self.api_key = api_key
