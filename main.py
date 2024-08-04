@@ -86,17 +86,17 @@ Ensure absolute consistency and zero tolerance. ANY presence of body shaming, de
     def _init_model(self) -> None:
         try:
             genai.configure(api_key=self.api_key)
-            self.model_instance = genai.GenerativeModel(self.model, system_instruction = self.PROMPT_SENTIMENT)
+            self.model_instance = genai.GenerativeModel(self.model)
         except Exception as e:
             logger.error(f"Error initializing Gemini model: {str(e)}")
             raise
 
-    async def sentiment_analysis(self, lyrics: str, title: str) -> Optional[Dict[str, Any]]:
+    async def sentiment_analysis(self, lyrics: str, title: str, prompt: str) -> Optional[Dict[str, Any]]:
         max_retries = 3
         for attempt in range(max_retries):
             try:
                 response = await self.model_instance.generate_content_async(
-                    lyrics,
+                    [prompt,lyrics],
                     safety_settings={
                         HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
                         HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
@@ -131,13 +131,14 @@ class SentimentRequest(BaseModel):
     api_key: str
     lyrics: str
     title: str
+    prompt: str
 
 
 @app.post("/sentiment")
 async def analyze_sentiment(request: SentimentRequest):
     try:
         gemini_api = GeminiApi(api_key=request.api_key)
-        result = await gemini_api.sentiment_analysis(request.lyrics, request.title)
+        result = await gemini_api.sentiment_analysis(request.lyrics, request.title, request.prompt)
         
         if result is None:
             raise HTTPException(status_code=503, detail="Failed to communicate with Gemini API after multiple attempts")
