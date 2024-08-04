@@ -24,7 +24,7 @@ Dependencies:
 import os
 import logging
 import json
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 import asyncio
 import re
 from fastapi import FastAPI, HTTPException
@@ -40,63 +40,48 @@ logger = logging.getLogger(__name__)
 app = FastAPI()
 
 class GeminiApi:
-    PROMPT_SENTIMENT ="""As an advanced sentiment analysis system for song lyrics, evaluate the given lyrics (in Polish or English) and return a JSON result. Be extremely strict and uncompromising in your assessments, with zero tolerance for offensive content, regardless of humor or intended message. Rules:
+    PROMPT_SENTIMENT ="""Create a system for evaluating song lyrics for a high school radio station (students aged 16-21). The system should classify songs into three categories: positive sentiment (can be played), neutral sentiment (requires manual review), or negative sentiment (automatically rejected).
+Evaluation criteria:
 
-Positive (0):
-- Uplifting, joyful, or inspiring content with absolutely no offensive elements
-- Songs expressing hope, resilience, or personal growth using entirely respectful language
-- Love songs with respectful, non-explicit content
-- Mild use of common swear words is acceptable if not directed at individuals
+Reject content that is explicitly offensive or promotes harmful behavior
+Allow content that discusses personal struggles, emotions, or social issues in a non-harmful way
+Be lenient towards mild stereotypes or generational comments if the overall message is positive
+Block content that is explicitly patriotic or religious
+Block songs typically intended for young children
+Consider the overall tone and message of the song
+Disregard profanity (it's filtered separately)
 
-Neutral (1):
-- Songs with a perfect balance of positive and negative elements, without any potentially offensive content
-- Purely descriptive or narrative content without emotional charge or potentially offensive language
-
-Negative (2):
-- ANY use of derogatory language, slurs, or offensive terms (beyond common swear words)
-- ANY form of body shaming or mocking physical appearances, NO EXCEPTIONS
-- ANY humor targeting individuals or groups based on physical characteristics
-- Promotion of harmful behaviors, attitudes, or stereotypes, even if presented humorously
-- Use of crude or disrespectful metaphors or comparisons, regardless of context
-- Explicit sexual content or graphic descriptions of violence
-- Religious or overtly political content
-- Children's songs or content primarily aimed at very young audiences
-- Lyrics not in Polish or English
-
-Critical Points:
-- Humor is NEVER an excuse for offensive content. ANY humorous content that involves body shaming, mocking appearances, or use of derogatory language results in an automatic negative classification
-- The intended message, moral, or "lesson" DOES NOT excuse the use of offensive language or harmful stereotypes
-- ANY instance of body shaming or mocking physical appearances, even if used for contrast or to highlight a positive change, results in a negative classification
-- Be extremely wary of "twist" endings or morals that seem to justify earlier offensive content - the presence of offensive content overrides any positive message
-
-Return this JSON structure:
+Analyze the following song lyrics and classify them according to the above criteria. Return the response in the following JSON format:
 {
-  "sentiment": int, // "positive" = 0, "negative" = 2, "neutral" = 1
-  "sentiment_score": number, // -1 to 1 (0 for neutral)
-  "confidence": number, // 0 to 1
-  "explanation": string // One concise sentence summarizing the rationale, focusing on the presence of any offensive elements
+"overall_sentiment": string, // "positive", "negative", or "neutral"
+"sentiment_score": number, // -1 to 1 (0 for neutral)
+"confidence": number, // 0 to 1
+"explanation": string // One concise sentence justifying the assessment
 }
+Remember to always provide the response in the specified JSON format, without any additional comments or explanations outside the structure. Songs that express personal struggles, emotions, life reflections, or social commentary in a constructive or artistic way, without being explicitly harmful or promoting negative stereotypes, should be classified as positive. Be cautious with humor that might be perceived as offensive or that reinforces negative stereotypes about appearance or other personal characteristics. Classify as negative any content that mocks or demeans individuals based on their physical appearance or other personal traits, even if presented in a humorous context.
+Song lyrics to analyze:"""
 
-Ensure absolute consistency and zero tolerance. ANY presence of body shaming, derogatory language, or mocking of physical appearances results in a negative classification, regardless of humor, overall message, or attempts at a positive moral. When in doubt, always classify as negative."""
-    def __init__(self, api_key: str, model: str = "gemini-1.5-flash") -> None:
+    def __init__(self, api_keys: list, model: str = "gemini-1.5-flash") -> None:
         self.model = model
-        self.api_key = api_key
+        self.api_key_manager = ApiKeyManager(api_keys)
         self._init_model()
 
     def _init_model(self) -> None:
         try:
-            genai.configure(api_key=self.api_key)
-            self.model_instance = genai.GenerativeModel(self.model)
+            self.model_instance = genai.GenerativeModel(self.model, system_instruction=self.PROMPT_SENTIMENT)
         except Exception as e:
             logger.error(f"Error initializing Gemini model: {str(e)}")
             raise
 
-    async def sentiment_analysis(self, lyrics: str, title: str, prompt: str) -> Optional[Dict[str, Any]]:
+    async def sentiment_analysis(self, lyrics: str, title: str) -> Optional[Dict[str, Any]]:
         max_retries = 3
         for attempt in range(max_retries):
             try:
+                api_key = await self.api_key_manager.get_next_key() if attempt == 0 else await self.api_key_manager.get_retry_key()
+                genai.configure(api_key=api_key)
+                
                 response = await self.model_instance.generate_content_async(
-                    [prompt,lyrics],
+                    lyrics,
                     safety_settings={
                         HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
                         HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
@@ -119,26 +104,47 @@ Ensure absolute consistency and zero tolerance. ANY presence of body shaming, de
                         result[key] = list(dict.fromkeys(result[key]))
             
                 return result
+            
             except Exception as e:
-                logger.error(f"Attempt {attempt + 1} failed: {str(e)}")
+                logger.error(f"Attempt {attempt + 1} failed with API key {api_key}: {str(e)}")
                 if attempt < max_retries - 1:
                     await asyncio.sleep(1)  # Wait for 1 second before retrying
                 else:
                     logger.error("All attempts to communicate with Gemini failed")
                     return None
 
+class ApiKeyManager:
+    def __init__(self, api_keys):
+        self.api_keys = api_keys
+        self.current_key_index = 0
+        self.request_count = 0
+        self.lock = asyncio.Lock()
+
+    async def get_next_key(self):
+        async with self.lock:
+            key = self.api_keys[self.current_key_index]
+            self.request_count += 1
+            if self.request_count % 4 == 0:
+                self.current_key_index = (self.current_key_index + 1) % len(self.api_keys)
+            return key
+
+    async def get_retry_key(self):
+        async with self.lock:
+            self.current_key_index = (self.current_key_index + 1) % len(self.api_keys)
+            return self.api_keys[self.current_key_index]
+
+
 class SentimentRequest(BaseModel):
-    api_key: str
+    api_keys: List[str]
     lyrics: str
     title: str
-    prompt: str
 
 
 @app.post("/sentiment")
 async def analyze_sentiment(request: SentimentRequest):
     try:
-        gemini_api = GeminiApi(api_key=request.api_key)
-        result = await gemini_api.sentiment_analysis(request.lyrics, request.title, request.prompt)
+        gemini_api = GeminiApi(api_keys=request.api_keys)
+        result = await gemini_api.sentiment_analysis(request.lyrics, request.title)
         
         if result is None:
             raise HTTPException(status_code=503, detail="Failed to communicate with Gemini API after multiple attempts")
@@ -147,7 +153,6 @@ async def analyze_sentiment(request: SentimentRequest):
     except Exception as e:
         logger.error(f"Error in sentiment analysis endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
-
 
 if __name__ == "__main__":
     import uvicorn
