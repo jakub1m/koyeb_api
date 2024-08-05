@@ -93,7 +93,8 @@ Song lyrics to analyze:"""
         max_retries = 3
         for attempt in range(max_retries):
             try:
-                api_key = await self.api_key_manager.get_next_key() if attempt == 0 else await self.api_key_manager.get_retry_key()
+                api_key = await self.api_key_manager.get_next_key()
+                print(f"Using API key: {api_key}")
                 genai.configure(api_key=api_key)
                 
                 response = await self.model_instance.generate_content_async(
@@ -106,6 +107,10 @@ Song lyrics to analyze:"""
                     }
                 )
 
+                if response is None:
+                    logger.warning(f"Response is null for API key {api_key}, indicating quota issues.")
+                    continue
+
                 json_content = response.candidates[0].content.parts[0].text
                 
                 json_content = re.sub(r'```json\s*|\s*```', '', json_content)
@@ -115,11 +120,14 @@ Song lyrics to analyze:"""
                     json_content = match.group(0)
                 
                 result = json.loads(json_content)
-                for key in result:
-                    if isinstance(result[key], list):
-                        result[key] = list(dict.fromkeys(result[key]))
-            
-                return result
+                if isinstance(result, dict):
+                    for key in result:
+                        if isinstance(result[key], list):
+                            result[key] = list(dict.fromkeys(result[key]), api_key)
+                    return result
+                else:
+                    logger.error(f"Unexpected response format: {json_content}")
+                    return None
             
             except Exception as e:
                 logger.error(f"Attempt {attempt + 1} failed with API key {api_key}: {str(e)}")
@@ -135,11 +143,11 @@ class SentimentRequest(BaseModel):
     lyrics: str
     title: str
 
+gemini_api = GeminiApi()
 
 @app.post("/sentiment")
 async def analyze_sentiment(request: SentimentRequest):
     try:
-        gemini_api = GeminiApi(api_keys=request.api_keys)
         result = await gemini_api.sentiment_analysis(request.lyrics, request.title)
         
         if result is None:
