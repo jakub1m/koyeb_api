@@ -67,7 +67,7 @@ Song lyrics to analyze:"""
             raise
     
     async def sentiment_analysis(self, lyrics: str, title: str) -> Optional[Dict[str, Any]]:
-        max_retries = 3
+        max_retries = 5
         for attempt in range(max_retries):
             try:
                 api_key = await self.api_key_manager.get_next_key()
