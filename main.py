@@ -18,6 +18,7 @@ app = FastAPI()
 
 api_keys = os.getenv("Api_keys", "").split(",")  # Get API keys from environment variable
 api_keys = [key.strip() for key in api_keys if key.strip()]  # Clean and prepare the list
+print(api_keys)
 
 class ApiKeyManager:
     def __init__(self, api_keys: List[str]):
