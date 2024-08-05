@@ -124,7 +124,7 @@ class ApiKeyManager:
         async with self.lock:
             key = self.api_keys[self.current_key_index]
             self.request_count += 1
-            if self.request_count % 4 == 0:
+            if self.request_count % 5 == 0:
                 self.current_key_index = (self.current_key_index + 1) % len(self.api_keys)
             return key
 
