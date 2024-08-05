@@ -72,10 +72,6 @@ Song lyrics to analyze:"""
                     }
                 )
 
-                if response.status_code != 200:
-                    logger.warning(f"Received non-200 status code: {response.status_code}. Switching API key.")
-                    continue
-
                 json_content = response.candidates[0].content.parts[0].text
                 
                 json_content = re.sub(r'```json\s*|\s*```', '', json_content)
