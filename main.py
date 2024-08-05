@@ -6,6 +6,7 @@ import asyncio
 import re
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from itertools import cycle
 
 import google.generativeai as genai
 from google.generativeai.types import HarmCategory, HarmBlockThreshold
@@ -16,21 +17,9 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
-api_keys = os.getenv("Api_keys", "").split(",")  # Get API keys from environment variable
-api_keys = [key.strip() for key in api_keys if key.strip()]  # Clean and prepare the list
-print(api_keys)
-
-class ApiKeyManager:
-    def __init__(self, api_keys: List[str]):
-        self.api_keys = api_keys
-        self.current_key_index = 0
-        self.lock = asyncio.Lock()
-
-    async def get_next_key(self) -> str:
-        async with self.lock:
-            key = self.api_keys[self.current_key_index]
-            self.current_key_index = (self.current_key_index + 1) % len(self.api_keys)
-            return key
+api_keys = os.getenv("Api_keys", "").split(",")  # Get the first two API keys
+api_keys = [key.strip() for key in api_keys if key.strip()]
+api_key_cycle = cycle(api_keys)
 
 class GeminiApi:
     PROMPT_SENTIMENT = """Create a system for evaluating song lyrics for a high school radio station (students aged 16-21). The system should classify songs into three categories: positive sentiment (can be played), neutral sentiment (requires manual review), or negative sentiment (automatically rejected).
@@ -56,7 +45,6 @@ Song lyrics to analyze:"""
 
     def __init__(self, model: str = "gemini-1.5-flash") -> None:
         self.model = model
-        self.api_key_manager = ApiKeyManager(api_keys)
         self._init_model()
     
     def _init_model(self) -> None:
@@ -66,11 +54,11 @@ Song lyrics to analyze:"""
             logger.error(f"Error initializing Gemini model: {str(e)}")
             raise
     
-    async def sentiment_analysis(self, lyrics: str, title: str) -> Optional[Dict[str, Any]]:
-        max_retries = 5
+    async def sentiment_analysis(self, lyrics: str) -> Optional[Dict[str, Any]]:
+        max_retries = 2
         for attempt in range(max_retries):
             try:
-                api_key = await self.api_key_manager.get_next_key()
+                api_key = next(api_key_cycle)
                 logger.info(f"Using API key: {api_key}")
                 genai.configure(api_key=api_key)
                 
@@ -84,8 +72,8 @@ Song lyrics to analyze:"""
                     }
                 )
 
-                if response is None:
-                    logger.warning(f"Response is null for API key {api_key}, indicating quota issues.")
+                if response.status_code != 200:
+                    logger.warning(f"Received non-200 status code: {response.status_code}. Switching API key.")
                     continue
 
                 json_content = response.candidates[0].content.parts[0].text
@@ -101,7 +89,7 @@ Song lyrics to analyze:"""
                     return result
                 else:
                     logger.error(f"Unexpected response format: {json_content}")
-                    return None
+                    continue
             
             except Exception as e:
                 logger.error(f"Attempt {attempt + 1} failed with API key {api_key}: {str(e)}")
@@ -110,7 +98,9 @@ Song lyrics to analyze:"""
                 else:
                     logger.error("All attempts to communicate with Gemini failed")
                     return None
-                
+        
+        return None
+
 class SentimentRequest(BaseModel):
     lyrics: str
     title: str
@@ -119,7 +109,7 @@ gemini_api = GeminiApi()
 @app.post("/sentiment")
 async def analyze_sentiment(request: SentimentRequest):
     try:
-        result = await gemini_api.sentiment_analysis(request.lyrics, request.title)
+        result = await gemini_api.sentiment_analysis(request.lyrics)
         
         if result is None:
             raise HTTPException(status_code=503, detail="Failed to communicate with Gemini API after multiple attempts")
