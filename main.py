@@ -117,21 +117,16 @@ class ApiKeyManager:
     def __init__(self, api_keys):
         self.api_keys = api_keys
         self.current_key_index = 0
-        self.request_count = 0
         self.lock = asyncio.Lock()
 
     async def get_next_key(self):
         async with self.lock:
             key = self.api_keys[self.current_key_index]
-            self.request_count += 1
-            if self.request_count % 5 == 0:
-                self.current_key_index = (self.current_key_index + 1) % len(self.api_keys)
+            self.current_key_index = (self.current_key_index + 1) % len(self.api_keys)
             return key
 
     async def get_retry_key(self):
-        async with self.lock:
-            self.current_key_index = (self.current_key_index + 1) % len(self.api_keys)
-            return self.api_keys[self.current_key_index]
+        return await self.get_next_key()
 
 
 class SentimentRequest(BaseModel):
