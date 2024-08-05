@@ -39,8 +39,24 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
+class ApiKeyManager:
+    def __init__(self, api_keys):
+        self.api_keys = api_keys
+        self.current_key_index = 0
+        self.lock = asyncio.Lock()
+
+    async def get_next_key(self):
+        async with self.lock:
+            key = self.api_keys[self.current_key_index]
+            self.current_key_index = (self.current_key_index + 1) % len(self.api_keys)
+            return key
+
+    async def get_retry_key(self):
+        return await self.get_next_key()
+
+
 class GeminiApi:
-    PROMPT_SENTIMENT ="""Create a system for evaluating song lyrics for a high school radio station (students aged 16-21). The system should classify songs into three categories: positive sentiment (can be played), neutral sentiment (requires manual review), or negative sentiment (automatically rejected).
+    PROMPT_SENTIMENT = """Create a system for evaluating song lyrics for a high school radio station (students aged 16-21). The system should classify songs into three categories: positive sentiment (can be played), neutral sentiment (requires manual review), or negative sentiment (automatically rejected).
 Evaluation criteria:
 
 Reject content that is explicitly offensive or promotes harmful behavior
@@ -112,21 +128,6 @@ Song lyrics to analyze:"""
                 else:
                     logger.error("All attempts to communicate with Gemini failed")
                     return None
-
-class ApiKeyManager:
-    def __init__(self, api_keys):
-        self.api_keys = api_keys
-        self.current_key_index = 0
-        self.lock = asyncio.Lock()
-
-    async def get_next_key(self):
-        async with self.lock:
-            key = self.api_keys[self.current_key_index]
-            self.current_key_index = (self.current_key_index + 1) % len(self.api_keys)
-            return key
-
-    async def get_retry_key(self):
-        return await self.get_next_key()
 
 
 class SentimentRequest(BaseModel):
