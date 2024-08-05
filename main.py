@@ -46,7 +46,7 @@ Disregard profanity (it's filtered separately)
 
 Analyze the following song lyrics and classify them according to the above criteria. Return the response in the following JSON format:
 {
-"overall_sentiment": string, // "positive", "negative", or "neutral"
+"sentiment": int, // "positive=0", "negative=2", or "neutral=1"
 "sentiment_score": number, // -1 to 1 (0 for neutral)
 "confidence": number, // 0 to 1
 "explanation": string // One concise sentence justifying the assessment
