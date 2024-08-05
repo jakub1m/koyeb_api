@@ -103,7 +103,6 @@ Song lyrics to analyze:"""
 
 class SentimentRequest(BaseModel):
     lyrics: str
-    title: str
 
 gemini_api = GeminiApi()
 @app.post("/sentiment")
