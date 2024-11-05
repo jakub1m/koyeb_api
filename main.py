@@ -35,6 +35,7 @@ Consider the overall tone and message of the song.
 Disregard profanity (it's filtered separately).
 If the title (provided within <title> tags) suggests that the song may be inappropriate (e.g., “Erika” or “Katiusza”), contains indirect references or euphemisms for offensive figures (e.g., “Austrian Painter” referring to Adolf H.), or includes special symbols or phrases associated with edited versions (e.g., "♂", "♀", "Right Version"), automatically classify it as negative sentiment (sentiment=2).
 Block all remixes, hardstyle versions, bass-boosted versions, covers, AI-generated covers, and similar alternate versions.
+Block all songs that might be russian or Russia related.
 Analyze the following song lyrics and classify them according to the above criteria. Return the response in the following JSON format:
 {
   "sentiment": int, // "positive=0", "negative=2", or "neutral=1"
