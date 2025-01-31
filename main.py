@@ -101,7 +101,7 @@ gemini_api = GeminiApi()
 @app.post("/sentiment")
 async def analyze_sentiment(request: SentimentRequest):
     try:
-        result = await gemini_api.sentiment_analysis(request.lyrics, request.title)
+        result = await gemini_api.sentiment_analysis(request.lyrics)
         
         if result is None:
             raise HTTPException(status_code=503, detail="Failed to communicate with Gemini API after multiple attempts")
